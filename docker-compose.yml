@@ -1,23 +1,61 @@
+version: '3.8'  # Docker Compose file version
+
 services:
-  openWebUI:
-    image: ghcr.io/open-webui/open-webui:main
+  openWebUI3:
+    image: ghcr.io/open-webui/open-webui:cuda
     restart: always
     ports:
       - "3000:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - open-webui-local:/app/backend/data
- 
+      - open-webui:/app/backend/data
+    depends_on:
+      - ollama
+    container_name: my-open-webui
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            capabilities: [gpu]
+            count: all
+
   ollama:
-    image: ollama/ollama:0.1.34
+    image: ollama/ollama:latest
     ports:
       - "11434:11434"
     volumes:
-      - ollama-local:/root/.ollama
- 
+      - ollama:/root/.ollama
+    restart: always
+    container_name: my-ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            capabilities: [gpu]
+            count: all
+
+  pipelines:
+    image: ghcr.io/open-webui/pipelines:main
+    restart: always
+    ports:
+      - "9099:9099"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - pipelines:/app/pipelines
+    container_name: my-pipelines
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            capabilities: [gpu]
+            count: all
+
 volumes:
-  ollama-local:
-    external: true
-  open-webui-local:
-    external: true
+  ollama: {}
+  open-webui: {}
+  pipelines: {}
