@@ -9,10 +9,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - open-webui:/app/backend/data
-    depends_on:
-      - ollama
-    container_name: my-open-webui
+      - ./volumes/webui:/app/backend/data
+    container_name: gpt.webui
     deploy:
       resources:
         reservations:
@@ -26,9 +24,9 @@ services:
     ports:
       - "11434:11434"
     volumes:
-      - ollama:/root/.ollama
+      - ./volumes/ollama:/root/.ollama
     restart: always
-    container_name: my-ollama
+    container_name: gpt.ollama
     deploy:
       resources:
         reservations:
@@ -39,23 +37,11 @@ services:
 
   pipelines:
     image: ghcr.io/open-webui/pipelines:main
+    container_name: gpt.pipelines
     restart: always
     ports:
       - "9099:9099"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - pipelines:/app/pipelines
-    container_name: my-pipelines
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            capabilities: [gpu]
-            count: all
-
-volumes:
-  ollama: {}
-  open-webui: {}
-  pipelines: {}
+      - ./volumes/pipelines:/app/pipelines
